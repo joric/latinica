@@ -75,7 +75,7 @@ window.onload = () => {
     "ч"  :  "ch",
     "ш"  :  "sh",
     "щ"  :  "sjh",
-    "ъ"  :  {"y":[{"after":"[cons_ru]","except":"й"}],"yh":[{"after":"[cons_ru]","except":"й"},{"before":"аэиоуйь"}],"hy":[],"hyh":[{"before":"аэиоуйь"}]},
+    "ъ"  :  {"yh":[{"after":"[cons_ru]","except":"й"},{"before":"аэиоуйь"}],"y":[{"after":"[cons_ru]","except":"й"}],"hyh":[{"before":"аэиоуйь"}], "hy":[]},
     "ы"  :  "yi",
     "ь"  :  {"j":[{"after":"[cons_ru]","except":"й"}],"hj":[]},
     "э"  :  {"e":[],"ye":[{"after":"[cons_ru]","except":"й"}]},
@@ -92,29 +92,38 @@ window.onload = () => {
     '[vows_ru]': 'аеёоуыэюя',
   };
 
-  const complies = (rules, prev, next) => {
+  const complies = (token, rules, prev, next) => {
     return rules.every(rule => {
       const { after, before, except } = rule;
       if (after) {
         const value = sets[after] || after;
-        if (!value.includes(prev) && except !== prev) return false;
+        if (!prev || (!value.includes(prev) && except !== prev)) {
+          //console.log(token, 'FAILED', rule, value, 'prev', prev);
+          return false;
+        }
       }
       if (before) {
         const value = sets[before] || before;
-        if (!value.includes(next) && except !== next) return false;
+        if (!next || (!value.includes(next) && except !== next)) {
+          //console.log(token, 'FAILED', rule, value, 'next', next);
+          return false;
+        }
       }
+      //console.log(token, 'PASSED (all rules)');
       return true;
     });
   };
 
   const getToken = (table, token, prev, next) => {
-    const a = table[token];
-    if (typeof a === 'object') {
-      for (const [res, rules] of Object.entries(a)) {
-        if (complies(rules, prev, next)) return res;
+    const entry = table[token];
+    if (typeof entry === 'object') {
+      for (const [token, rules] of Object.entries(entry)) {
+        if (complies(token, rules, prev, next)) return token;
       }
+    } else {
+      //if (entry) console.log(entry, 'PASSED (no rules)');
+      return entry;
     }
-    return a;
   };
 
   const translate = (s, table) => {
@@ -133,6 +142,7 @@ window.onload = () => {
         }
       }
     }
+    //console.log('RES', res);
     return res.join('')
   };
 
@@ -148,6 +158,17 @@ window.onload = () => {
       timeout = setTimeout(() => { rus.value = translate(lat.value, latrus) }, 500);
     });
   });
+
+  const test = (table, arg, expected) => {
+    let res = translate(arg, table);
+    console.log(res==expected ? 'OK' : 'FAILED', arg, '=>', res, '// should be:', expected);
+  };
+
+  //test(ruslat, 'ъуъ', 'hyhuhy');
+  //test(ruslat, 'съука', 'syhuka');
+  //test(ruslat, 'Паровоз Ъ', 'Parovoz Hy');
+  //test(ruslat, 'Паровоз Ь', 'Parovoz Hj');
+  //test(ruslat, 'Чанъань', 'Chanyhanj');
 }
 </script>
 
