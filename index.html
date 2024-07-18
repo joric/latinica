@@ -217,22 +217,24 @@ window.onload = () => {
 
   const test = (cyr, lat) => {
     for (const[src, res, expected] of [[cyr, cyr_to_lat(cyr), lat],[lat, lat_to_cyr(lat), cyr]]) {
+      if (res==expected) return true;
       console.log(res==expected ? 'OK' : 'FAILED', src, '=>', res, '// should be:', expected);
+      return false;
     }
-
   };
 
-  /*
-  test('ъуъ', 'hyhuhy');
-  test('съука', 'syhuka');
-  test('Паровоз Ъ', 'Parovoz Hy');
-  test('Паровоз Ь', 'Parovoz Hj');
-  test('Чанъань', 'Chanyhanj');
-  test('заезд','zayezd');
-  test('дерево','derevo');
-  test('поэт','poet');
-  test('мэр', 'myer');
-  */
+  [
+    ['ъуъ', 'hyhuhy'],
+    ['съука', 'syhuka'],
+    ['Паровоз Ъ', 'Parovoz Hy'],
+    ['Паровоз Ь', 'Parovoz Hj'],
+    ['Чанъань', 'Chanyhanj'],
+    ['заезд','zayezd'],
+    ['дерево','derevo'],
+    ['поэт','poet'],
+    ['мэр', 'myer'],
+
+  ].map( ([cyr,lat])=> test(cyr, lat));
 }
 
 </script>
