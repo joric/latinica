@@ -7,155 +7,159 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="icon" href="data:,">
 <script>
+
+let latrus = {
+  "a"  :  "а",
+  "b"  :  "б",
+  "c"  :  "ц",
+  "ch" :  "ч",
+  "d"  :  "д",
+  "e"  :  {"е":[{"after":"[cons_en]"}],"э":[]},
+  "f"  :  "ф",
+  "g"  :  "г",
+  "hj" :  "ь",
+  "hy" :  "ъ",
+  "hyh":  "ъ",
+  "i"  :  "и",
+  "j"  :  {"ь":[{"after":"[cons_en]"}],"й":[]},
+  "k"  :  "к",
+  "kh" :  "х",
+  "l"  :  "л",
+  "m"  :  "м",
+  "n"  :  "н",
+  "o"  :  "о",
+  "p"  :  "п",
+  "r"  :  "р",
+  "s"  :  "с",
+  "sjh":  "щ",
+  "sh" :  "ш",
+  "t"  :  "т",
+  "u"  :  "у",
+  "v"  :  "в",
+  "y"  :  "ъ",
+  "ya" :  "я",
+  "ye" :  "е",
+  "yh" :  "ъ",
+  "yu" :  "ю",
+  "yi" :  "ы",
+  "yo" :  "ё",
+  "z"  :  "з",
+  "zh" :  "ж",
+};
+
+let ruslat = {
+  "а"  :  "a",
+  "б"  :  "b",
+  "в"  :  "v",
+  "г"  :  "g",
+  "д"  :  "d",
+  "е"  :  {"e":[{"after":"[cons_ru]","except":"й"}],"ye":[]},
+  "ё"  :  "yo",
+  "ж"  :  "zh",
+  "з"  :  "z",
+  "и"  :  "i",
+  "й"  :  {"yj":[{"after":"[cons_ru]","except":"й"}],"j":[]},
+  "к"  :  "k",
+  "л"  :  "l",
+  "м"  :  "m",
+  "н"  :  "n",
+  "о"  :  "o",
+  "п"  :  "p",
+  "р"  :  "r",
+  "с"  :  "s",
+  "т"  :  "t",
+  "у"  :  "u",
+  "ф"  :  "f",
+  "х"  :  "kh",
+  "ц"  :  "c",
+  "ч"  :  "ch",
+  "ш"  :  "sh",
+  "щ"  :  "sjh",
+  "ъ"  :  {"yh":[{"after":"[cons_ru]","except":"й"},{"before":"аэиоуйь"}],"y":[{"after":"[cons_ru]","except":"й"}],"hyh":[{"before":"аэиоуйь"}], "hy":[]},
+  "ы"  :  "yi",
+  "ь"  :  {"j":[{"after":"[cons_ru]","except":"й"}],"hj":[]},
+  "э"  :  {"e":[],"ye":[{"after":"[cons_ru]","except":"й"}]},
+  "ю"  :  "yu",
+  "я"  :  "ya",
+};
+
+const capitalize = s => s[0].toUpperCase()+s.slice(1);
+
+const sets = {
+  '[vows_en]': 'aoeiu',
+  '[cons_en]': 'bcdfghklmnpqrstvwxz',
+  '[cons_ru]': 'бвгджзйклмнпрстфхцчшщъь',
+  '[vows_ru]': 'аеёоуыэюя',
+};
+
+const complies = (token, rules, prev, next) => {
+  return rules.every(rule => {
+    const { after, before, except } = rule;
+    if (after) {
+      const value = sets[after] || after;
+      if (!prev || (!value.includes(prev) && except !== prev)) {
+        //console.log(token, 'FAILED', rule, value, 'prev', prev);
+        return false;
+      }
+    }
+    if (before) {
+      const value = sets[before] || before;
+      if (!next || (!value.includes(next) && except !== next)) {
+        //console.log(token, 'FAILED', rule, value, 'next', next);
+        return false;
+      }
+    }
+    //console.log(token, 'PASSED (all rules)');
+    return true;
+  });
+};
+
+const getToken = (table, token, prev, next) => {
+  const entry = table[token];
+  if (typeof entry === 'object') {
+    for (const [token, rules] of Object.entries(entry)) {
+      if (complies(token, rules, prev, next)) return token;
+    }
+  } else {
+    //if (entry) console.log(entry, 'PASSED (no rules)');
+    return entry;
+  }
+};
+
+const translate = (s, table) => {
+  let res = [];
+  for (let i = 0; i < s.length;) {
+    const capitalized = s[i] === s[i].toUpperCase();
+    for (const j of [3, 2, 1]) {
+      const token = s.substring(i, i + j).toLowerCase();
+      const prev = s.substring(i - 1, i).toLowerCase();
+      const next = s.substring(i + j, i + j + 1).toLowerCase();
+      const c = getToken(table, token, prev, next);
+      if (c || j === 1) {
+        res.push(capitalized ? capitalize(c || token) : (c || token));
+        i += j;
+        break;
+      }
+    }
+  }
+  //console.log('RES', res);
+  return res.join('')
+};
+
+const trans_lat = () => { lat.value = translate(rus.value, ruslat) };
+const trans_rus = () => { rus.value = translate(lat.value, latrus) };
+
 window.onload = () => {
-  let latrus = {
-    "a"  :  "а",
-    "b"  :  "б",
-    "c"  :  "ц",
-    "ch" :  "ч",
-    "d"  :  "д",
-    "e"  :  {"е":[{"after":"[cons_en]"}],"э":[]},
-    "f"  :  "ф",
-    "g"  :  "г",
-    "hj" :  "ь",
-    "hy" :  "ъ",
-    "hyh":  "ъ",
-    "i"  :  "и",
-    "j"  :  {"ь":[{"after":"[cons_en]"}],"й":[]},
-    "k"  :  "к",
-    "kh" :  "х",
-    "l"  :  "л",
-    "m"  :  "м",
-    "n"  :  "н",
-    "o"  :  "о",
-    "p"  :  "п",
-    "r"  :  "р",
-    "s"  :  "с",
-    "sjh":  "щ",
-    "sh" :  "ш",
-    "t"  :  "т",
-    "u"  :  "у",
-    "v"  :  "в",
-    "y"  :  "ъ",
-    "ya" :  "я",
-    "ye" :  "е",
-    "yh" :  "ъ",
-    "yu" :  "ю",
-    "yi" :  "ы",
-    "yo" :  "ё",
-    "z"  :  "з",
-    "zh" :  "ж",
-  };
-
-  let ruslat = {
-    "а"  :  "a",
-    "б"  :  "b",
-    "в"  :  "v",
-    "г"  :  "g",
-    "д"  :  "d",
-    "е"  :  {"e":[{"after":"[cons_ru]","except":"й"}],"ye":[]},
-    "ё"  :  "yo",
-    "ж"  :  "zh",
-    "з"  :  "z",
-    "и"  :  "i",
-    "й"  :  {"yj":[{"after":"[cons_ru]","except":"й"}],"j":[]},
-    "к"  :  "k",
-    "л"  :  "l",
-    "м"  :  "m",
-    "н"  :  "n",
-    "о"  :  "o",
-    "п"  :  "p",
-    "р"  :  "r",
-    "с"  :  "s",
-    "т"  :  "t",
-    "у"  :  "u",
-    "ф"  :  "f",
-    "х"  :  "kh",
-    "ц"  :  "c",
-    "ч"  :  "ch",
-    "ш"  :  "sh",
-    "щ"  :  "sjh",
-    "ъ"  :  {"yh":[{"after":"[cons_ru]","except":"й"},{"before":"аэиоуйь"}],"y":[{"after":"[cons_ru]","except":"й"}],"hyh":[{"before":"аэиоуйь"}], "hy":[]},
-    "ы"  :  "yi",
-    "ь"  :  {"j":[{"after":"[cons_ru]","except":"й"}],"hj":[]},
-    "э"  :  {"e":[],"ye":[{"after":"[cons_ru]","except":"й"}]},
-    "ю"  :  "yu",
-    "я"  :  "ya",
-  };
-
-  const capitalize = s => s[0].toUpperCase()+s.slice(1);
-
-  const sets = {
-    '[vows_en]': 'aoeiu',
-    '[cons_en]': 'bcdfghklmnpqrstvwxz',
-    '[cons_ru]': 'бвгджзйклмнпрстфхцчшщъь',
-    '[vows_ru]': 'аеёоуыэюя',
-  };
-
-  const complies = (token, rules, prev, next) => {
-    return rules.every(rule => {
-      const { after, before, except } = rule;
-      if (after) {
-        const value = sets[after] || after;
-        if (!prev || (!value.includes(prev) && except !== prev)) {
-          //console.log(token, 'FAILED', rule, value, 'prev', prev);
-          return false;
-        }
-      }
-      if (before) {
-        const value = sets[before] || before;
-        if (!next || (!value.includes(next) && except !== next)) {
-          //console.log(token, 'FAILED', rule, value, 'next', next);
-          return false;
-        }
-      }
-      //console.log(token, 'PASSED (all rules)');
-      return true;
-    });
-  };
-
-  const getToken = (table, token, prev, next) => {
-    const entry = table[token];
-    if (typeof entry === 'object') {
-      for (const [token, rules] of Object.entries(entry)) {
-        if (complies(token, rules, prev, next)) return token;
-      }
-    } else {
-      //if (entry) console.log(entry, 'PASSED (no rules)');
-      return entry;
-    }
-  };
-
-  const translate = (s, table) => {
-    let res = [];
-    for (let i = 0; i < s.length;) {
-      const capitalized = s[i] === s[i].toUpperCase();
-      for (const j of [3, 2, 1]) {
-        const token = s.substring(i, i + j).toLowerCase();
-        const prev = s.substring(i - 1, i).toLowerCase();
-        const next = s.substring(i + j, i + j + 1).toLowerCase();
-        const c = getToken(table, token, prev, next);
-        if (c || j === 1) {
-          res.push(capitalized ? capitalize(c || token) : (c || token));
-          i += j;
-          break;
-        }
-      }
-    }
-    //console.log('RES', res);
-    return res.join('')
-  };
-
   let timeout;
 
   'input keypress'.split(' ').forEach(e=> {
     rus.addEventListener(e, () => {
       clearTimeout(timeout);
-      timeout = setTimeout(() => { lat.value = translate(rus.value, ruslat) }, 500);
+      timeout = setTimeout(trans_lat, 500);
     });
     lat.addEventListener(e, () => {
       clearTimeout(timeout);
-      timeout = setTimeout(() => { rus.value = translate(lat.value, latrus) }, 500);
+      timeout = setTimeout(trans_rus, 500);
     });
   });
 
@@ -170,6 +174,7 @@ window.onload = () => {
   //test(ruslat, 'Паровоз Ь', 'Parovoz Hj');
   //test(ruslat, 'Чанъань', 'Chanyhanj');
 }
+
 </script>
 
 <style>
