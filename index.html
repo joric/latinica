@@ -97,14 +97,15 @@ const complies = (token, rules, prev, next) => {
     const { after, before, except } = rule;
     if (after) {
       const value = sets[after] || after;
-      if (!prev || (!value.includes(prev) && except !== prev)) {
+      //console.log('prev', prev, 'except', except, 'value', value, !value.includes(prev)&& except !== prev);
+      if (!prev || (!value.includes(prev) || except == prev)) {
         //console.log(token, 'FAILED', rule, value, 'prev', prev);
         return false;
       }
     }
     if (before) {
       const value = sets[before] || before;
-      if (!next || (!value.includes(next) && except !== next)) {
+      if (!next || (!value.includes(next) || except == next)) {
         //console.log(token, 'FAILED', rule, value, 'next', next);
         return false;
       }
@@ -155,45 +156,64 @@ if(0) {
 }
 
 // experimental regex code for later, need to make it case-sensitive
+// need RegExp() to substitute tables:
+// const cons = 'бвгджзклмнпрстфхцчшщ';
+// const vowels = 'аэиоуйь';
+// .replace(new RegExp(`(?<=[${cons}])ъ(?=[${vowels}])`, 'g'), 'yh')
+
+String.prototype.r = function(search, replace) {
+  return this.replace(new RegExp(search, 'gi'), match => {
+    //if (match === match.toLowerCase()) return replace.toLowerCase();
+    //if (match === match.toUpperCase()) return replace.toUpperCase();
+    if (match[0] === match[0].toUpperCase()) return replace[0].toUpperCase() + replace.slice(1).toLowerCase();
+    return replace.toLowerCase();
+  });
+}
 
 // unused
 function _cyr_to_lat(text) {
-  const cons = 'бвгджзклмнпрстфхцчшщ';
-  const vowels = 'аэиоуйь';
-  //.replace(new RegExp(`(?<=[${cons}])ъ(?=[${vowels}])`, 'g'), 'yh')
-  return text.toLowerCase()
-    .replace(/(?<=[бвгджзклмнпрстфхцчшщ])ъ(?=[аэиоуйь])/g, 'yh').replace(/(?<=[бвгджзклмнпрстфхцчшщ])ъ/g, 'y').replace(/ъ(?=[аэиоуйь])/g, 'hyh').replace(/ъ/g, 'hy')
-    .replace(/(?<=[бвгджзклмнпрстфхцчшщ])е/g, 'e').replace(/е/g, 'ye')
-    .replace(/(?<=[бвгджзклмнпрстфхцчшщ])й/g, 'yj').replace(/й/g, 'j')
-    .replace(/(?<=[бвгджзклмнпрстфхцчшщ])й/g, 'j').replace(/й/g, 'hj')
-    .replace(/(?<=[бвгджзклмнпрстфхцчшщ])э/g, 'ye').replace(/э/g, 'e')
-    .replace(/ё/g, 'yo')
-    .replace(/ж/g, 'zh')
-    .replace(/х/g, 'kh')
-    .replace(/ч/g, 'ch')
-    .replace(/ш/g, 'sh')
-    .replace(/щ/g, 'sjh')
-    .replace(/[а-яё]/g, m => 'abvgdziklmnoprstufc'['абвгдзиклмнопрстуфц'.indexOf(m)]||m)
+  const c = 'бвгджзклмнпрстфхцчшщ';
+  const v = 'аэиоуйь';
+  return text
+    .r('щ','sjh')
+    .r('ё','yo')
+    .r('ж','zh')
+    .r('х','kh')
+    .r('ч','ch')
+    .r('ш','sh')
+    .r('ы','yi')
+    .r('я','ya')
+    .r('ю','yu')
+    .r(`(?<=[${c}])ь`,'j').r('ь','hj')
+    .r(`(?<=[${c}])ъ(?=[${v}])`,'yh').r(`(?<=[${c}])ъ`,'y').r(`ъ(?=[${v}])`,'hyh').r('ъ','hy')
+    .r(`(?<=[${c}])й`,'yj').r('й','j')
+    .r(`(?<=[${c}])э`,'ye').r('э','e')
+    .r(`(?<=[${c}])е`,'e').r('е','ye')
+    .replace(/[а-яё]/gi, m => 'ABVGDZIKLMNOPRSTUFCabvgdziklmnoprstufc'['АБВГДЗИКЛМНОПРСТУФЦабвгдзиклмнопрстуфц'.indexOf(m)]||m)
 }
 
 // unused
 function _lat_to_cyr(text) {
-  return text.toLowerCase()
-    .replace(/hyh/g, 'ъ').replace(/hj/g, 'ъ').replace(/hy/g, 'ъ')
-    .replace(/sjh/g, 'щ')
-    .replace(/sh/g, 'ш')
-    .replace(/ch/g, 'ч')
-    .replace(/kh/g, 'х')
-    .replace(/ya/, 'я')
-    .replace(/ye/, 'е')
-    .replace(/yh/, 'ъ')
-    .replace(/yu/, 'ю')
-    .replace(/yi/, 'ы')
-    .replace(/yo/, 'ё')
-    .replace(/zh/, 'ж')
-    .replace(/(?<=[bcdfghklmnpqrstvwxz])e/g,'e').replace(/e/g,'э')
-    .replace(/(?<=[bcdfghklmnpqrstvwxz])e/g,'ь').replace(/e/g,'й')
-    .replace(/[a-z]/g, m => 'абцдфгиклмнопрстувъз'['abcdfgiklmnoprstuvyz'.indexOf(m)]||m)
+  const c = 'bcdfghklmnpqrstvwxz';
+  return text
+    .r('sjh','щ')
+    .r('hyh','ъ')
+    .r('sh', 'ш')
+    .r('zh', 'ж')
+    .r('ch', 'ч')
+    .r('kh', 'х')
+    .r('hj', 'ь')
+    .r('hy', 'ъ')
+    .r('ya', 'я')
+    .r('yh', 'ъ')
+    .r('yu', 'ю')
+    .r('yi', 'ы')
+    .r('yj', 'й')
+    .r('yo', 'ё')
+    .r(`(?<=[${c}])ye`,'э').r('ye','е')
+    .r(`(?<=[${c}])e`,'е').r('e','э')
+    .r(`(?<=[${c}])j`,'ь').r('j','й')
+    .replace(/[a-z]/gi, m => 'АБЦДФГИКЛМНОПРСТУВЪЗабцдфгиклмнопрстувъз'['ABCDFGIKLMNOPRSTUVYZabcdfgiklmnoprstuvyz'.indexOf(m)]||m)
 }
 
 window.onload = () => {
@@ -217,10 +237,12 @@ window.onload = () => {
   btn_lat_rus.onclick = ui_lat_to_cyr;
 
   const test = ([lat, cyr]) => {
-    for (const[src, res, expected] of [[lat, lat_to_cyr(lat), cyr],[cyr, cyr_to_lat(cyr), lat]]) {
-      if (res==expected) return true;
-      console.log(res==expected ? 'OK' : 'FAILED', src, '=>', res, '// should be:', expected);
-      return false;
+    for (const[src, res, expected] of [[lat, lat_to_cyr(lat), cyr], [cyr, cyr_to_lat(cyr), lat]]) {
+      //console.log(src, res, expected);
+      if (res!=expected) { 
+        console.log(res==expected ? 'OK' : 'FAILED', src, '=>', res, '// should be:', expected);
+        return false;
+      }
     }
   };
 
@@ -244,7 +266,6 @@ window.onload = () => {
     ['syekonomitj','сэкономить'],
     ['yula','юла'],
     ['yabloko','яблоко'],
-
   ].map(test);
 }
 
@@ -311,4 +332,3 @@ textarea {
 </body>
 <a href="https://github.com/joric/latinica" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
 </html>
-
