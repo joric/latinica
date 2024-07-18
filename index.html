@@ -136,24 +136,16 @@ window.onload = () => {
     return res.join('')
   };
 
-  const trans_lat = () => {
-    rus.value = translate(lat.value, latrus);
-  }
-
-  const trans_rus = () => {
-    lat.value = translate(rus.value, ruslat);
-  }
-
-  let timeout = null;
+  let timeout;
 
   'input keypress'.split(' ').forEach(e=> {
     rus.addEventListener(e, () => {
       clearTimeout(timeout);
-      timeout = setTimeout(trans_rus, 500);
+      timeout = setTimeout(() => { lat.value = translate(rus.value, ruslat) }, 500);
     });
     lat.addEventListener(e, () => {
       clearTimeout(timeout);
-      timeout = setTimeout(trans_lat, 500);
+      timeout = setTimeout(() => { rus.value = translate(lat.value, latrus) }, 500);
     });
   });
 }
