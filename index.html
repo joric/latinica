@@ -150,16 +150,16 @@ const translate = (s, table) => {
 let rus_to_lat = s => translate(s, ruslat);
 let lat_to_rus = s => translate(s, latrus);
 
+if(0) { // use regex (experimental)
+  rus_to_lat = _rus_to_lat
+  lat_to_cyr = _lat_to_rus
+}
+
 String.prototype.r = function(search, replace) {
   return this.replace(new RegExp(search, 'gi'), match => {
     if (match[0] === match[0].toUpperCase()) return replace[0].toUpperCase() + replace.slice(1).toLowerCase();
     return replace.toLowerCase();
   });
-}
-
-if(0) { // use regex (experimental)
-  rus_to_lat = _rus_to_lat
-  lat_to_cyr = _lat_to_rus
 }
 
 function _rus_to_lat(text) {
@@ -257,6 +257,8 @@ window.onload = () => {
     ['yula','юла'],
     ['yabloko','яблоко'],
     ['Syyeshj zhe yesjhyo etikh myagkikh francuzskikh bulok, da vyipej chayu.','Съешь же ещё этих мягких французских булок, да выпей чаю.'],
+    ['òkolozémnyij','òколозéмный'],
+    ['ùzkospecializírovannyij','ùзкоспециализíрованный'],
   ].map(test);
 }
 
