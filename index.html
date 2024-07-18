@@ -7,6 +7,149 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="icon" href="data:,">
 <script>
+const latrus = {
+  "a"  :  "а",
+  "b"  :  "б",
+  "c"  :  "ц",
+  "ch" :  "ч",
+  "d"  :  "д",
+  "e"  :  {"е":[{"after":"[cons_en]"}],"э":[]},
+  "f"  :  "ф",
+  "g"  :  "г",
+  "hj" :  "ь",
+  "hy" :  "ъ",
+  "hyh":  "ъ",
+  "i"  :  "и",
+  "yj" :  "й",
+  "j"  :  {"ь":[{"after":"[cons_en]"}],"й":[]},
+  "k"  :  "к",
+  "kh" :  "х",
+  "l"  :  "л",
+  "m"  :  "м",
+  "n"  :  "н",
+  "o"  :  "о",
+  "p"  :  "п",
+  "r"  :  "р",
+  "s"  :  "с",
+  "sjh":  "щ",
+  "sh" :  "ш",
+  "t"  :  "т",
+  "u"  :  "у",
+  "v"  :  "в",
+  "y"  :  "ъ",
+  "ya" :  "я",
+  "ye" :  {"э":[{"after":"[cons_en]"}],"е":[]},
+  "yh" :  "ъ",
+  "yu" :  "ю",
+  "yi" :  "ы",
+  "yo" :  "ё",
+  "z"  :  "з",
+  "zh" :  "ж",
+};
+
+const ruslat = {
+  "а"  :  "a",
+  "б"  :  "b",
+  "в"  :  "v",
+  "г"  :  "g",
+  "д"  :  "d",
+  "е"  :  {"e":[{"after":"[cons_ru]","except":"й"}],"ye":[]},
+  "ё"  :  "yo",
+  "ж"  :  "zh",
+  "з"  :  "z",
+  "и"  :  "i",
+  "й"  :  {"yj":[{"after":"[cons_ru]","except":"й"}],"j":[]},
+  "к"  :  "k",
+  "л"  :  "l",
+  "м"  :  "m",
+  "н"  :  "n",
+  "о"  :  "o",
+  "п"  :  "p",
+  "р"  :  "r",
+  "с"  :  "s",
+  "т"  :  "t",
+  "у"  :  "u",
+  "ф"  :  "f",
+  "х"  :  "kh",
+  "ц"  :  "c",
+  "ч"  :  "ch",
+  "ш"  :  "sh",
+  "щ"  :  "sjh",
+  "ъ"  :  {"yh":[{"after":"[cons_ru]","except":"й"},{"before":"аэиоуйь"}],"y":[{"after":"[cons_ru]","except":"й"}],"hyh":[{"before":"аэиоуйь"}], "hy":[]},
+  "ы"  :  "yi",
+  "ь"  :  {"j":[{"after":"[cons_ru]","except":"й"}],"hj":[]},
+  "э"  :  {"ye":[{"after":"[cons_ru]","except":"й"}],"e":[]},
+  "ю"  :  "yu",
+  "я"  :  "ya",
+};
+
+const capitalize = s => s[0].toUpperCase()+s.slice(1);
+
+const sets = {
+  '[vows_en]': 'aoeiu',
+  '[cons_en]': 'bcdfghklmnpqrstvwxz',
+  '[cons_ru]': 'бвгджзйклмнпрстфхцчшщ',
+  '[vows_ru]': 'аеёоуыэюя',
+};
+
+const complies = (token, rules, prev, next) => {
+  return rules.every(rule => {
+    const { after, before, except } = rule;
+    if (after) {
+      const value = sets[after] || after;
+      //console.log('prev', prev, 'except', except, 'value', value, !value.includes(prev)&& except !== prev);
+      if (!prev || (!value.includes(prev) || except == prev)) {
+        //console.log(token, 'FAILED', rule, value, 'prev', prev);
+        return false;
+      }
+    }
+    if (before) {
+      const value = sets[before] || before;
+      if (!next || (!value.includes(next) || except == next)) {
+        //console.log(token, 'FAILED', rule, value, 'next', next);
+        return false;
+      }
+    }
+    //console.log(token, 'PASSED (all rules)');
+    return true;
+  });
+};
+
+const getToken = (table, token, prev, next) => {
+  const entry = table[token];
+  if (typeof entry === 'object') {
+    for (const [token, rules] of Object.entries(entry)) {
+      if (complies(token, rules, prev, next)) return token;
+    }
+  } else {
+    //if (entry) console.log(entry, 'PASSED (no rules)');
+    return entry;
+  }
+};
+
+const translate = (s, table) => {
+  let res = [];
+  for (let i = 0; i < s.length;) {
+    const capitalized = s[i] === s[i].toUpperCase();
+    for (const j of [3, 2, 1]) {
+      const token = s.substring(i, i + j).toLowerCase();
+      const prev = s.substring(i - 1, i).toLowerCase();
+      const next = s.substring(i + j, i + j + 1).toLowerCase();
+      const c = getToken(table, token, prev, next);
+      if (c || j === 1) {
+        res.push(capitalized ? capitalize(c || token) : (c || token));
+        i += j;
+        break;
+      }
+    }
+  }
+  //console.log('RES', res);
+  return res.join('')
+};
+
+let rus_to_lat = s => translate(s, ruslat);
+let lat_to_rus = s => translate(s, latrus);
+
 String.prototype.r = function(search, replace) {
   return this.replace(new RegExp(search, 'gi'), match => {
     if (match[0] === match[0].toUpperCase()) return replace[0].toUpperCase() + replace.slice(1).toLowerCase();
@@ -14,10 +157,20 @@ String.prototype.r = function(search, replace) {
   });
 }
 
-function rus_to_lat(text) {
+if(0) { // use regex (experimental)
+  rus_to_lat = _rus_to_lat
+  lat_to_cyr = _lat_to_rus
+}
+
+function _rus_to_lat(text) {
   const c = 'бвгджзклмнпрстфхцчшщ';
   const v = 'аэиоуйь';
   return text
+    .r(`(?<=[${c}])ъ(?=[${v}])`,'yh').r(`(?<=[${c}])ъ`,'y').r(`ъ(?=[${v}])`,'hyh').r('ъ','hy')
+    .r(`(?<=[${c}])ь`,'j').r('ь','hj')
+    .r(`(?<=[${c}])е`,'e').r('е','ye')
+    .r(`(?<=[${c}])й`,'yj').r('й','j')
+    .r(`(?<=[${c}])э`,'ye').r('э','e')
     .r('щ','sjh')
     .r('ё','yo')
     .r('ж','zh')
@@ -27,17 +180,15 @@ function rus_to_lat(text) {
     .r('ы','yi')
     .r('я','ya')
     .r('ю','yu')
-    .r(`(?<=[${c}])ь`,'j').r('ь','hj')
-    .r(`(?<=[${c}])ъ(?=[${v}])`,'yh').r(`(?<=[${c}])ъ`,'y').r(`ъ(?=[${v}])`,'hyh').r('ъ','hy')
-    .r(`(?<=[${c}])й`,'yj').r('й','j')
-    .r(`(?<=[${c}])э`,'ye').r('э','e')
-    .r(`(?<=[${c}])е`,'e').r('е','ye')
     .replace(/[а-яё]/gi, m => 'ABVGDZIKLMNOPRSTUFCabvgdziklmnoprstufc'['АБВГДЗИКЛМНОПРСТУФЦабвгдзиклмнопрстуфц'.indexOf(m)]||m)
 }
 
-function lat_to_rus(text) {
+function _lat_to_rus(text) {
   const c = 'bcdfghklmnpqrstvwxz';
   return text
+    .r(`(?<=[${c}])ye`,'э').r('ye','е')
+    .r(`(?<=[${c}])e`,'е').r('e','э')
+    .r(`(?<=[${c}])j`,'ь').r('j','й')
     .r('sjh','щ')
     .r('hyh','ъ')
     .r('sh', 'ш')
@@ -52,9 +203,6 @@ function lat_to_rus(text) {
     .r('yi', 'ы')
     .r('yj', 'й')
     .r('yo', 'ё')
-    .r(`(?<=[${c}])ye`,'э').r('ye','е')
-    .r(`(?<=[${c}])e`,'е').r('e','э')
-    .r(`(?<=[${c}])j`,'ь').r('j','й')
     .replace(/[a-z]/gi, m => 'АБЦДФГИКЛМНОПРСТУВЪЗабцдфгиклмнопрстувъз'['ABCDFGIKLMNOPRSTUVYZabcdfgiklmnoprstuvyz'.indexOf(m)]||m)
 }
 
@@ -108,6 +256,7 @@ window.onload = () => {
     ['syekonomitj','сэкономить'],
     ['yula','юла'],
     ['yabloko','яблоко'],
+    ['Syyeshj zhe yesjhyo etikh myagkikh francuzskikh bulok, da vyipej chayu.','Съешь же ещё этих мягких французских булок, да выпей чаю.'],
   ].map(test);
 }
 
