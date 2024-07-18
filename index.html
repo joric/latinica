@@ -37,7 +37,7 @@ const latrus = {
   "v"  :  "в",
   "y"  :  "ъ",
   "ya" :  "я",
-  "ye" :  "е",
+  "ye" :  {"э":[{"after":"[cons_en]"}],"е":[]},
   "yh" :  "ъ",
   "yu" :  "ю",
   "yi" :  "ы",
@@ -145,33 +145,94 @@ const translate = (s, table) => {
   return res.join('')
 };
 
-const trans_lat = () => { lat.value = translate(rus.value, ruslat) };
-const trans_rus = () => { rus.value = translate(lat.value, latrus) };
+let cyr_to_lat = s => translate(s, ruslat);
+let lat_to_cyr = s => translate(s, latrus);
+
+if(0) {
+  cyr_to_lat = _cyr_to_lat
+  lat_to_cyr = _lat_to_cyr
+}
+
+// experimental regex code for later, need to make it case-sensitive
+
+// unused
+function _cyr_to_lat(text) {
+  const cons = 'бвгджзклмнпрстфхцчшщ';
+  const vowels = 'аэиоуйь';
+  //.replace(new RegExp(`(?<=[${cons}])ъ(?=[${vowels}])`, 'g'), 'yh')
+  return text.toLowerCase()
+    .replace(/(?<=[бвгджзклмнпрстфхцчшщ])ъ(?=[аэиоуйь])/g, 'yh').replace(/(?<=[бвгджзклмнпрстфхцчшщ])ъ/g, 'y').replace(/ъ(?=[аэиоуйь])/g, 'hyh').replace(/ъ/g, 'hy')
+    .replace(/(?<=[бвгджзклмнпрстфхцчшщ])е/g, 'e').replace(/е/g, 'ye')
+    .replace(/(?<=[бвгджзклмнпрстфхцчшщ])й/g, 'yj').replace(/й/g, 'j')
+    .replace(/(?<=[бвгджзклмнпрстфхцчшщ])й/g, 'j').replace(/й/g, 'hj')
+    .replace(/(?<=[бвгджзклмнпрстфхцчшщ])э/g, 'ye').replace(/э/g, 'e')
+    .replace(/ё/g, 'yo')
+    .replace(/ж/g, 'zh')
+    .replace(/х/g, 'kh')
+    .replace(/ч/g, 'ch')
+    .replace(/ш/g, 'sh')
+    .replace(/щ/g, 'sjh')
+    .replace(/[а-яё]/g, m => 'abvgdziklmnoprstufc'['абвгдзиклмнопрстуфц'.indexOf(m)]||m)
+}
+
+// unused
+function _lat_to_cyr(text) {
+  return text.toLowerCase()
+    .replace(/hyh/g, 'ъ').replace(/hj/g, 'ъ').replace(/hy/g, 'ъ')
+    .replace(/sjh/g, 'щ')
+    .replace(/sh/g, 'ш')
+    .replace(/ch/g, 'ч')
+    .replace(/kh/g, 'х')
+    .replace(/ya/, 'я')
+    .replace(/ye/, 'е')
+    .replace(/yh/, 'ъ')
+    .replace(/yu/, 'ю')
+    .replace(/yi/, 'ы')
+    .replace(/yo/, 'ё')
+    .replace(/zh/, 'ж')
+    .replace(/(?<=[bcdfghklmnpqrstvwxz])e/g,'e').replace(/e/g,'э')
+    .replace(/(?<=[bcdfghklmnpqrstvwxz])e/g,'ь').replace(/e/g,'й')
+    .replace(/[a-z]/g, m => 'абцдфгиклмнопрстувъз'['abcdfgiklmnoprstuvyz'.indexOf(m)]||m)
+}
 
 window.onload = () => {
   let timeout;
 
+  const ui_cyr_to_lat = () => { text_lat.value = cyr_to_lat(text_rus.value) };
+  const ui_lat_to_cyr = () => { text_rus.value = lat_to_cyr(text_lat.value) };
+
   'input keypress'.split(' ').forEach(e=> {
-    rus.addEventListener(e, () => {
+    text_rus.addEventListener(e, () => {
       clearTimeout(timeout);
-      timeout = setTimeout(trans_lat, 500);
+      timeout = setTimeout(ui_cyr_to_lat, 500);
     });
-    lat.addEventListener(e, () => {
+    text_lat.addEventListener(e, () => {
       clearTimeout(timeout);
-      timeout = setTimeout(trans_rus, 500);
+      timeout = setTimeout(ui_lat_to_cyr, 500);
     });
   });
 
-  const test = (table, arg, expected) => {
-    let res = translate(arg, table);
-    console.log(res==expected ? 'OK' : 'FAILED', arg, '=>', res, '// should be:', expected);
+  btn_rus_lat.onclick = ui_cyr_to_lat;
+  btn_lat_rus.onclick = ui_lat_to_cyr;
+
+  const test = (cyr, lat) => {
+    for (const[src, res, expected] of [[cyr, cyr_to_lat(cyr), lat],[lat, lat_to_cyr(lat), cyr]]) {
+      console.log(res==expected ? 'OK' : 'FAILED', src, '=>', res, '// should be:', expected);
+    }
+
   };
 
-  //test(ruslat, 'ъуъ', 'hyhuhy');
-  //test(ruslat, 'съука', 'syhuka');
-  //test(ruslat, 'Паровоз Ъ', 'Parovoz Hy');
-  //test(ruslat, 'Паровоз Ь', 'Parovoz Hj');
-  //test(ruslat, 'Чанъань', 'Chanyhanj');
+  /*
+  test('ъуъ', 'hyhuhy');
+  test('съука', 'syhuka');
+  test('Паровоз Ъ', 'Parovoz Hy');
+  test('Паровоз Ь', 'Parovoz Hj');
+  test('Чанъань', 'Chanyhanj');
+  test('заезд','zayezd');
+  test('дерево','derevo');
+  test('поэт','poet');
+  test('мэр', 'myer');
+  */
 }
 
 </script>
@@ -221,16 +282,16 @@ textarea {
 <div class="container">
 
   <div class="wrapper">
-    RUS<br/><textarea id="rus" rows=15 autofocus></textarea><br/>
+    RUS<br/><textarea id="text_rus" rows=15 autofocus></textarea><br/>
   </div>
 
   <div class="buttons">
-    <input type="button" value="RUS -> LAT" onclick="trans_lat()"/>
-    <input type="button" value="LAT <- RUS" onclick="trans_rus()"/>
+    <input type="button" value="RUS -> LAT" id="btn_rus_lat"/>
+    <input type="button" value="LAT <- RUS" id="btn_lat_rus"/>
   </div>
 
   <div class="wrapper">
-    LAT<br/><textarea id="lat" rows=15></textarea>
+    LAT<br/><textarea id="text_lat" rows=15></textarea>
   </div>
 
 </div>
