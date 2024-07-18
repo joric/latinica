@@ -7,11 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="icon" href="data:,">
 <script>
-
-let trans_lat = ()=>{ trans('lat'); };
-let trans_rus = ()=>{ trans('rus'); };
-
-function trans(dest) {
+window.onload = () => {
   let latrus = {
     "a"  :  "а",
     "b"  :  "б",
@@ -89,83 +85,80 @@ function trans(dest) {
 
   const capitalize = s => s[0].toUpperCase()+s.slice(1);
 
-  let sets = {
+  const sets = {
     '[vows_en]': 'aoeiu',
     '[cons_en]': 'bcdfghklmnpqrstvwxz',
     '[cons_ru]': 'бвгджзйклмнпрстфхцчшщъь',
     '[vows_ru]': 'аеёоуыэюя',
   };
 
-  function complies(rules, prev, next) {
-    for (const rule of rules) {
-      if (value = rule.after) {
-        value = sets[value] || value;
-        if (value.indexOf(prev)==-1 && rule.except!=prev) {
-          return false;
-        }
+  const complies = (rules, prev, next) => {
+    return rules.every(rule => {
+      const { after, before, except } = rule;
+      if (after) {
+        const value = sets[after] || after;
+        if (!value.includes(prev) && except !== prev) return false;
       }
-      if (value = rule.before) {
-        value = sets[value] || value;
-        if (value.indexOf(next)==-1 && rule.except!=next) {
-          return false;
-        }
+      if (before) {
+        const value = sets[before] || before;
+        if (!value.includes(next) && except !== next) return false;
+      }
+      return true;
+    });
+  };
+
+  const getToken = (table, token, prev, next) => {
+    const a = table[token];
+    if (typeof a === 'object') {
+      for (const [res, rules] of Object.entries(a)) {
+        if (complies(rules, prev, next)) return res;
       }
     }
-    return true;
-  }
+    return a;
+  };
 
-  function get_token(table, token, prev, next) {
-    let a = table[token];
-    if (a && a.constructor == Object) {
-      for (const[res, rules] of Object.entries(a)) {
-        if (complies(rules, prev, next)) {
-          return res;
-        }
-      }
-    } else {
-      return a;
-    }
-  }
-
-  function translate(s, table) {
-    let dest = '';
-    for(let i=0;i<s.length;) {
-      let capitalized = s[i]==s[i].toUpperCase();
-      for(j of [3,2,1]) {
-        let token = s.substring(i,i+j).toLowerCase();
-        let prev = s.substring(i-1, i).toLowerCase();
-        let next = s.substring(i+j,i+j+1).toLowerCase();
-        let res = get_token(table, token, prev, next);
-        if (res || j==1) {
-          dest += capitalized ? capitalize(res || token) : (res || token);
+  const translate = (s, table) => {
+    let res = [];
+    for (let i = 0; i < s.length;) {
+      const capitalized = s[i] === s[i].toUpperCase();
+      for (const j of [3, 2, 1]) {
+        const token = s.substring(i, i + j).toLowerCase();
+        const prev = s.substring(i - 1, i).toLowerCase();
+        const next = s.substring(i + j, i + j + 1).toLowerCase();
+        const c = getToken(table, token, prev, next);
+        if (c || j === 1) {
+          res.push(capitalized ? capitalize(c || token) : (c || token));
           i += j;
           break;
         }
       }
     }
-    return dest;
+    return res.join('')
+  };
+
+  const trans_lat = () => {
+    rus.value = translate(lat.value, latrus);
   }
 
-  (dest=='lat' ? lat_input : rus_input).value = (dest=='lat') ? translate(rus_input.value, ruslat) : translate(lat_input.value, latrus);
+  const trans_rus = () => {
+    lat.value = translate(rus.value, ruslat);
+  }
+
+  let timeout = null;
+
+  'input keypress'.split(' ').forEach(e=> {
+    rus.addEventListener(e, () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(trans_rus, 500);
+    });
+    lat.addEventListener(e, () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(trans_lat, 500);
+    });
+  });
 }
-
-let timeout = null;
-
-window.onload = function() {
-  'input keypress'.split(' ').forEach(function(e){
-     document.getElementById('rus_input').addEventListener(e, function() {
-       clearTimeout(timeout);
-       timeout = setTimeout(trans_lat, 500);
-     });
-
-     document.getElementById('lat_input').addEventListener(e, function() {
-       clearTimeout(timeout);
-       timeout = setTimeout(trans_rus, 500);
-     });
-   });
-}
-
 </script>
+
 <style>
 body {
   margin: 1em;
@@ -215,7 +208,7 @@ textarea {
 <div class="container">
 
   <div class="wrapper">
-    RUS<br/><textarea id="rus_input" rows=15 autofocus></textarea><br/>
+    RUS<br/><textarea id="rus" rows=15 autofocus></textarea><br/>
   </div>
 
   <div class="buttons">
@@ -224,7 +217,7 @@ textarea {
   </div>
 
   <div class="wrapper">
-    LAT<br/><textarea id="lat_input" rows=15></textarea>
+    LAT<br/><textarea id="lat" rows=15></textarea>
   </div>
 
 </div>
