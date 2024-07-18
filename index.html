@@ -216,7 +216,7 @@ window.onload = () => {
   btn_rus_lat.onclick = ui_cyr_to_lat;
   btn_lat_rus.onclick = ui_lat_to_cyr;
 
-  const test = (lat, cyr) => {
+  const test = ([lat, cyr]) => {
     for (const[src, res, expected] of [[lat, lat_to_cyr(lat), cyr],[cyr, cyr_to_lat(cyr), lat]]) {
       if (res==expected) return true;
       console.log(res==expected ? 'OK' : 'FAILED', src, '=>', res, '// should be:', expected);
@@ -245,7 +245,7 @@ window.onload = () => {
     ['yula','юла'],
     ['yabloko','яблоко'],
 
-  ].map( ([cyr,lat])=> test(cyr, lat));
+  ].map(test);
 }
 
 </script>
