@@ -18,14 +18,14 @@ function trans(dest) {
     "c"  :  "ц",
     "ch" :  "ч",
     "d"  :  "д",
-    "e"  :  {"е":[{"after":"[cons]"}],"э":[]},
+    "e"  :  {"е":[{"after":"[cons_en]"}],"э":[]},
     "f"  :  "ф",
     "g"  :  "г",
     "hj" :  "ь",
     "hy" :  "ъ",
     "hyh":  "ъ",
     "i"  :  "и",
-    "j"  :  {"ь":[{"after":"[cons]"}],"й":[]},
+    "j"  :  {"ь":[{"after":"[cons_en]"}],"й":[]},
     "k"  :  "к",
     "kh" :  "х",
     "l"  :  "л",
@@ -57,12 +57,12 @@ function trans(dest) {
     "в"  :  "v",
     "г"  :  "g",
     "д"  :  "d",
-    "е"  :  {"e":[{"after":"[cons]","except":"й"}],"ye":[]},
+    "е"  :  {"e":[{"after":"[cons_ru]","except":"й"}],"ye":[]},
     "ё"  :  "yo",
     "ж"  :  "zh",
     "з"  :  "z",
     "и"  :  "i",
-    "й"  :  {"yj":[{"after":"[cons]","except":"й"}],"j":[]},
+    "й"  :  {"yj":[{"after":"[cons_ru]","except":"й"}],"j":[]},
     "к"  :  "k",
     "л"  :  "l",
     "м"  :  "m",
@@ -79,43 +79,46 @@ function trans(dest) {
     "ч"  :  "ch",
     "ш"  :  "sh",
     "щ"  :  "sjh",
-    "ъ"  :  {"y":[{"after":"[cons]","except":"й"}],"yh":[{"after":"[cons]","except":"й"},{"before":"аэиоуйь"}],"hy":[],"hyh":[{"before":"аэиоуйь"}]},
+    "ъ"  :  {"y":[{"after":"[cons_ru]","except":"й"}],"yh":[{"after":"[cons_ru]","except":"й"},{"before":"аэиоуйь"}],"hy":[],"hyh":[{"before":"аэиоуйь"}]},
     "ы"  :  "yi",
-    "ь"  :  {"j":[{"after":"[cons]","except":"й"}],"hj":[]},
-    "э"  :  {"e":[],"ye":[{"after":"[cons]","except":"й"}]},
+    "ь"  :  {"j":[{"after":"[cons_ru]","except":"й"}],"hj":[]},
+    "э"  :  {"e":[],"ye":[{"after":"[cons_ru]","except":"й"}]},
     "ю"  :  "yu",
     "я"  :  "ya",
   };
 
   const capitalize = s => s[0].toUpperCase()+s.slice(1);
 
-  function complies(res, rules, prev, next, cons, vows) {
+  let sets = {
+    '[vows_en]': 'aoeiu',
+    '[cons_en]': 'bcdfghklmnpqrstvwxz',
+    '[cons_ru]': 'бвгджзйклмнпрстфхцчшщъь',
+    '[vows_ru]': 'аеёоуыэюя',
+  };
+
+  function complies(rules, prev, next) {
     for (const rule of rules) {
       if (value = rule.after) {
-        value = value.replace('[cons]', cons).replace('[vows]', vows);
+        value = sets[value] || value;
         if (value.indexOf(prev)==-1 && rule.except!=prev) {
-          //console.log('rule',rule,'failed because', prev,'not in', cons);
           return false;
         }
       }
       if (value = rule.before) {
-        value = value.replace('[cons]', cons).replace('[vows]', vows);
+        value = sets[value] || value;
         if (value.indexOf(next)==-1 && rule.except!=next) {
-          //console.log('rule',rule,'failed because', prev,'not in', cons);
           return false;
         }
       }
-
     }
     return true;
   }
 
-  function get_token(table, token, prev, next, cons, vows) {
-    //console.log('getting', token, 'before', before, 'after', after);
+  function get_token(table, token, prev, next) {
     let a = table[token];
     if (a && a.constructor == Object) {
       for (const[res, rules] of Object.entries(a)) {
-        if (complies(res, rules, prev, next, cons, vows)) {
+        if (complies(rules, prev, next)) {
           return res;
         }
       }
@@ -126,38 +129,20 @@ function trans(dest) {
 
   function translate(s, table) {
     let dest = '';
-
-    let cons = 'bcdfghklmnpqrstvwxz';
-    let vows = 'aoeiu';
-
-    if (table==ruslat) {
-      let all = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя';
-      cons = 'бвгджзйклмнпрстфхцчшщъь';
-      vows = 'аеёоуыэюя';
-    }
-
     for(let i=0;i<s.length;) {
       let capitalized = s[i]==s[i].toUpperCase();
-
-      let found = false;
-
       for(j of [3,2,1]) {
         let token = s.substring(i,i+j).toLowerCase();
         let prev = s.substring(i-1, i).toLowerCase();
         let next = s.substring(i+j,i+j+1).toLowerCase();
-
-        let res = get_token(table, token, prev, next, cons, vows)
+        let res = get_token(table, token, prev, next);
         if (res || j==1) {
-
-          dest += capitalized ? capitalize((res || token)) : (res || token);
-
+          dest += capitalized ? capitalize(res || token) : (res || token);
           i += j;
           break;
         }
-
       }
     }
-
     return dest;
   }
 
