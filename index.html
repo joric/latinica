@@ -20,6 +20,7 @@ const latrus = {
   "hy" :  "ъ",
   "hyh":  "ъ",
   "i"  :  "и",
+  "yj" :  "й",
   "j"  :  {"ь":[{"after":"[cons_en]"}],"й":[]},
   "k"  :  "к",
   "kh" :  "х",
@@ -215,8 +216,8 @@ window.onload = () => {
   btn_rus_lat.onclick = ui_cyr_to_lat;
   btn_lat_rus.onclick = ui_lat_to_cyr;
 
-  const test = (cyr, lat) => {
-    for (const[src, res, expected] of [[cyr, cyr_to_lat(cyr), lat],[lat, lat_to_cyr(lat), cyr]]) {
+  const test = (lat, cyr) => {
+    for (const[src, res, expected] of [[lat, lat_to_cyr(lat), cyr],[cyr, cyr_to_lat(cyr), lat]]) {
       if (res==expected) return true;
       console.log(res==expected ? 'OK' : 'FAILED', src, '=>', res, '// should be:', expected);
       return false;
@@ -224,15 +225,25 @@ window.onload = () => {
   };
 
   [
-    ['ъуъ', 'hyhuhy'],
-    ['съука', 'syhuka'],
-    ['Паровоз Ъ', 'Parovoz Hy'],
-    ['Паровоз Ь', 'Parovoz Hj'],
-    ['Чанъань', 'Chanyhanj'],
-    ['заезд','zayezd'],
-    ['дерево','derevo'],
-    ['поэт','poet'],
-    ['мэр', 'myer'],
+    ['zayezd','заезд'],
+    ['derevo','дерево'],
+    ['poet','поэт'],
+    ['myer','мэр'],
+    ['yolka','ёлка'],
+    ['zhyoltyij','жёлтый'],
+    ['jogurt','йогурт'],
+    ['bezyjodovyij','безйодовый'],
+    ['transyjyemenskij','трансйеменский'],
+    ['obyyavleniye','объявление'],
+    ['Chanyhanj','Чанъань'],
+    ['Parovoz Hy','Паровоз Ъ'],
+    ['hyhuhy syhuka','ъуъ съука'],
+    ['syigratj','сыграть'],
+    ['stepj','степь'],
+    ['Parovoz Hj','Паровоз Ь'],
+    ['syekonomitj','сэкономить'],
+    ['yula','юла'],
+    ['yabloko','яблоко'],
 
   ].map( ([cyr,lat])=> test(cyr, lat));
 }
