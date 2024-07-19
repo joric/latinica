@@ -184,24 +184,24 @@ function _rus_to_lat(text) {
 }
 
 function _lat_to_rus(text) {
-  const c = 'bcdfghklmnpqrstvwxz';
-  return text
+  const c = 'bcdfghklmnpqrstvwxzшщ';
+  return text // order matters
+    .r('sjh','щ')
+    .r('sh', 'ш')
+    .r('yj', 'й')
+    .r('hj', 'ь')
+    .r(`(?<=[${c}])j`,'ь').r('j','й')
     .r(`(?<=[${c}])ye`,'э').r('ye','е')
     .r(`(?<=[${c}])e`,'е').r('e','э')
-    .r(`(?<=[${c}])j`,'ь').r('j','й')
-    .r('sjh','щ')
     .r('hyh','ъ')
-    .r('sh', 'ш')
     .r('zh', 'ж')
     .r('ch', 'ч')
     .r('kh', 'х')
-    .r('hj', 'ь')
     .r('hy', 'ъ')
     .r('ya', 'я')
     .r('yh', 'ъ')
     .r('yu', 'ю')
     .r('yi', 'ы')
-    .r('yj', 'й')
     .r('yo', 'ё')
     .replace(/[a-z]/gi, m => 'АБЦДФГИКЛМНОПРСТУВЪЗабцдфгиклмнопрстувъз'['ABCDFGIKLMNOPRSTUVYZabcdfgiklmnoprstuvyz'.indexOf(m)]||m)
 }
