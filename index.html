@@ -209,22 +209,16 @@ function _lat_to_rus(text) {
 window.onload = () => {
   let timeout;
 
-  const ui_rus_to_lat = () => { text_lat.value = rus_to_lat(text_rus.value) };
-  const ui_lat_to_rus = () => { text_rus.value = lat_to_rus(text_lat.value) };
-
   'input keypress'.split(' ').forEach(e=> {
     text_rus.addEventListener(e, () => {
       clearTimeout(timeout);
-      timeout = setTimeout(ui_rus_to_lat, 500);
+      timeout = setTimeout(() => { text_lat.value = rus_to_lat(text_rus.value) }, 500);
     });
     text_lat.addEventListener(e, () => {
       clearTimeout(timeout);
-      timeout = setTimeout(ui_lat_to_rus, 500);
+      timeout = setTimeout(() => { text_rus.value = lat_to_rus(text_lat.value) }, 500);
     });
   });
-
-  btn_rus_lat.onclick = ui_rus_to_lat;
-  btn_lat_rus.onclick = ui_lat_to_rus;
 
   const test = ([lat, rus]) => {
     for (const[src, res, expected] of [[lat, lat_to_rus(lat), rus], [rus, rus_to_lat(rus), lat]]) {
@@ -263,33 +257,19 @@ window.onload = () => {
 </script>
 
 <style>
-body {
-  margin: 1em;
-}
-
 .container {
   display: flex;
   flex-direction: row;
+  gap: 1em;
 }
 
-.buttons {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  flex-grow: 0;
-  padding: 1em;
-}
-
-.buttons > * {
-  margin: 0.5em;
-}
-
-.wrapper, .wrapper > * {
-  width: 100%;
+.wrapper {
+  flex-grow: 1;
 }
 
 textarea {
   font-size: 130%;
+  width:99%;
 }
 
 @media (max-width: 768px) {
@@ -297,7 +277,6 @@ textarea {
     flex-direction: column;
   }
 }
-
 </style>
 </head>
 <body>
@@ -308,11 +287,6 @@ textarea {
 
   <div class="wrapper">
     RUS<br/><textarea id="text_rus" rows=15 autofocus></textarea><br/>
-  </div>
-
-  <div class="buttons">
-    <input type="button" value="RUS -> LAT" id="btn_rus_lat"/>
-    <input type="button" value="LAT -> RUS" id="btn_lat_rus"/>
   </div>
 
   <div class="wrapper">
