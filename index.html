@@ -130,14 +130,17 @@ const getToken = (table, token, prev, next) => {
 const translate = (s, table) => {
   let res = [];
   for (let i = 0; i < s.length;) {
-    const capitalized = s[i] === s[i].toUpperCase();
+    const cap = s[i] === s[i].toUpperCase();
     for (const j of [3, 2, 1]) {
       const token = s.substring(i, i + j).toLowerCase();
       const prev = s.substring(i - 1, i).toLowerCase();
-      const next = s.substring(i + j, i + j + 1).toLowerCase();
-      const c = getToken(table, token, prev, next);
+      let next = s.substring(i + j, i + j + 1);
+      let uc = cap && (next=='' || (next == next.toUpperCase() && next.toUpperCase()!=next.toLowerCase()));
+      next = next.toLowerCase();
+      let c = getToken(table, token, prev, next);
       if (c || j === 1) {
-        res.push(capitalized ? capitalize(c || token) : (c || token));
+        c = c || token;
+        res.push(uc ? c.toUpperCase() : cap ? capitalize(c) : c);
         i += j;
         break;
       }
@@ -242,15 +245,16 @@ window.onload = () => {
     ['transyjyemenskij','трансйеменский'],
     ['obyyavleniye','объявление'],
     ['Chanyhanj','Чанъань'],
-    ['Parovoz Hy','Паровоз Ъ'],
+    ['Parovoz HY','Паровоз Ъ'],
     ['hyhuhy syhuka','ъуъ съука'],
     ['syigratj','сыграть'],
     ['stepj','степь'],
-    ['Parovoz Hj','Паровоз Ь'],
+    ['Parovoz HJ','Паровоз Ь'],
     ['syekonomitj','сэкономить'],
     ['yula','юла'],
     ['yabloko','яблоко'],
     ['Syyeshj zhe yesjhyo etikh myagkikh francuzskikh bulok, da vyipej chayu.','Съешь же ещё этих мягких французских булок, да выпей чаю.'],
+    ['MYER','МЭР'],
   ].map(test);
 }
 </script>
