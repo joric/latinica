@@ -217,12 +217,13 @@ function _lat_to_rus(text) {
 
 const encode = (text,table) => {
   const backrefs = Object.entries(table).filter(([k,v])=>k[0]=='(').map(([k,v])=>v);
-  return text.replace(new RegExp(Object.keys(table).join('|'),'gim'), (match, ...args) => {
-    let replace = backrefs.filter((v,i)=>args[i])[0] || table[match.toLowerCase()]
-    let i = args[args.length-2];
-    let next = args[args.length-1].substring(i+1, i+2);
-    let cap = match === match.toUpperCase();
-    let uc = cap && (next=='' || (next == next.toUpperCase() && next.toUpperCase()!=next.toLowerCase()));
+  return text.replace(new RegExp(Object.keys(table).join('|'),'gim'), (match, ...groups) => {
+    const replace = backrefs.filter((v,i)=>groups[i])[0] || table[match.toLowerCase()];
+    const input = groups.pop();
+    const offset = groups.pop();
+    const next = input.substring(offset+1, offset+2);
+    const cap = match === match.toUpperCase();
+    const uc = cap && (next=='' || (next == next.toUpperCase() && next.toUpperCase()!=next.toLowerCase()));
     return uc ? replace.toUpperCase() : cap ? capitalize(replace) : replace;
   })
 }
