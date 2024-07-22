@@ -216,8 +216,6 @@ function _lat_to_rus(text) {
 // method 3: a single regular expression with backreferences (where needed)
 
 const encode = (text,table) => {
-  //backrefs = [];
-  //Object.entries(table).forEach(([k,v])=>k[0]=='(' && backrefs.push(v));
   const backrefs = Object.entries(table).filter(([k,v])=>k[0]=='(').map(([k,v])=>v);
   return text.replace(new RegExp(Object.keys(table).join('|'),'gim'), (match, ...args) => {
     let replace = backrefs.filter((v,i)=>args[i])[0] || table[match.toLowerCase()]
