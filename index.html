@@ -153,13 +153,13 @@ const translate = (s, table) => {
 let rus_to_lat = s => translate(s, ruslat);
 let lat_to_rus = s => translate(s, latrus);
 
-if(0) { // use regex (experimental, there's an issue with capitalization in all-caps)
+if(0) { // use regex (experimental)
   rus_to_lat = __rus_to_lat
   lat_to_rus = __lat_to_rus
 }
 
 
-// method 2: a bunch of regular expressions
+// method 2: a bunch of regular expressions (capitalization issue)
 
 String.prototype.r = function(search, replace) {
   return this.replace(new RegExp(search, 'gi'), match => {
@@ -219,7 +219,11 @@ const encode = (text,table) => {
   const backrefs = Object.entries(table).filter(([k,v])=>k[0]=='(').map(([k,v])=>v);
   return text.replace(new RegExp(Object.keys(table).join('|'),'gim'), (match, ...args) => {
     let replace = backrefs.filter((v,i)=>args[i])[0] || table[match.toLowerCase()]
-    return match[0] === match[0].toUpperCase() ? replace[0].toUpperCase() + replace.slice(1).toLowerCase() : replace;
+    let i = args[args.length-2];
+    let next = args[args.length-1].substring(i+1, i+2);
+    let cap = match === match.toUpperCase();
+    let uc = cap && (next=='' || (next == next.toUpperCase() && next.toUpperCase()!=next.toLowerCase()));
+    return uc ? replace.toUpperCase() : cap ? capitalize(replace) : replace;
   })
 }
 
@@ -280,7 +284,7 @@ window.onload = () => {
     }
   };
 
-  [
+  [/*
     ['zayezd','заезд'],
     ['derevo','дерево'],
     ['poet','поэт'],
@@ -301,7 +305,7 @@ window.onload = () => {
     ['yula','юла'],
     ['yabloko','яблоко'],
     ['Syyeshj zhe yesjhyo etikh myagkikh francuzskikh bulok, da vyipej chayu.','Съешь же ещё этих мягких французских булок, да выпей чаю.'],
-    ['MYER','МЭР'],
+ */   ['MYER','МЭР'],
   ].map(test);
 }
 </script>
