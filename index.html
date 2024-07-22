@@ -158,13 +158,18 @@ if(0) { // use regex (experimental)
   lat_to_rus = __lat_to_rus
 }
 
+// method 2: a bunch of regular expressions
 
-// method 2: a bunch of regular expressions (capitalization issue)
+const _capitalize = (replace, match, input, offset)=> {
+    const next = input.substring(offset+1, offset+2);
+    const cap = match === match.toUpperCase();
+    const uc = cap && (next=='' || (next == next.toUpperCase() && next.toUpperCase()!=next.toLowerCase()));
+    return uc ? replace.toUpperCase() : cap ? capitalize(replace) : replace;
+};
 
 String.prototype.r = function(search, replace) {
-  return this.replace(new RegExp(search, 'gi'), match => {
-    if (match[0] === match[0].toUpperCase()) return replace[0].toUpperCase() + replace.slice(1).toLowerCase();
-    return replace.toLowerCase();
+  return this.replace(new RegExp(search, 'gi'), (match, ...groups) => {
+    return _capitalize(replace, match, groups.pop(), groups.pop());
   });
 }
 
@@ -219,12 +224,7 @@ const encode = (text,table) => {
   const backrefs = Object.entries(table).filter(([k,v])=>k[0]=='(').map(([k,v])=>v);
   return text.replace(new RegExp(Object.keys(table).join('|'),'gim'), (match, ...groups) => {
     const replace = backrefs.filter((v,i)=>groups[i])[0] || table[match.toLowerCase()];
-    const input = groups.pop();
-    const offset = groups.pop();
-    const next = input.substring(offset+1, offset+2);
-    const cap = match === match.toUpperCase();
-    const uc = cap && (next=='' || (next == next.toUpperCase() && next.toUpperCase()!=next.toLowerCase()));
-    return uc ? replace.toUpperCase() : cap ? capitalize(replace) : replace;
+    return _capitalize(replace, match, groups.pop(), groups.pop());
   })
 }
 
