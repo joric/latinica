@@ -212,7 +212,7 @@ function _lat_to_rus(text) {
 window.onload = () => {
   let timeout;
 
-  'input keypress'.split(' ').forEach(e=> {
+  'input keypress focus'.split(' ').forEach(e=> {
     text_rus.addEventListener(e, () => {
       clearTimeout(timeout);
       timeout = setTimeout(() => { text_lat.value = rus_to_lat(text_rus.value) }, 500);
