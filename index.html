@@ -153,7 +153,7 @@ const translate = (s, table) => {
 let rus_to_lat = s => translate(s, ruslat);
 let lat_to_rus = s => translate(s, latrus);
 
-if(1) { // use regex (experimental, there's an issue with capitalization in all-caps)
+if(0) { // use regex (experimental, there's an issue with capitalization in all-caps)
   rus_to_lat = __rus_to_lat
   lat_to_rus = __lat_to_rus
 }
