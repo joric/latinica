@@ -240,16 +240,9 @@ function __rus_to_lat(text) {
   'ц':'c' });
 }
 
-// method 4: method 3 packed
+// method 4: method 3 wrapped
 
-const _encode = (text,regexp,values) => {
-  const table = Object.assign(...regexp.split('|').map((k,i)=>({[k]:values[i]})));
-  const backrefs = Object.entries(table).filter(([k,v])=>k[0]=='(').map(([k,v])=>v);
-  return text.replace(new RegExp(regexp,'gim'), (match, ...args) => {
-    let replace = backrefs.filter((v,i)=>args[i])[0] || table[match.toLowerCase()]
-    return match[0] === match[0].toUpperCase() ? replace[0].toUpperCase() + replace.slice(1).toLowerCase() : replace;
-  })
-}
+const _encode = (text,regexp,values) => encode(text, Object.assign(...regexp.split('|').map((k,i)=>({[k]:values[i]}))));
 
 function ___lat_to_rus(text) {
   const regexp = 'sjh|sh|yj|hj|((?<=[bcdfghklmnpqrstvwx])j)|j|((?<=[bcdfghklmnpqrstvwxz])ye)|((?<=[bcdfghklmnpqrstvwxz])e)|hyh|zh|ch|kh|hy|ya|yh|yu|yi|yo|ye|a|b|c|d|e|f|g|i|k|l|m|n|o|p|r|s|t|u|v|y|z';
