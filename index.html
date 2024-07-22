@@ -240,6 +240,29 @@ function __rus_to_lat(text) {
   'ц':'c' });
 }
 
+// method 4: method 3 packed
+
+const _encode = (text,regexp,values) => {
+  const table = Object.assign(...regexp.split('|').map((k,i)=>({[k]:values[i]})));
+  const backrefs = Object.entries(table).filter(([k,v])=>k[0]=='(').map(([k,v])=>v);
+  return text.replace(new RegExp(regexp,'gim'), (match, ...args) => {
+    let replace = backrefs.filter((v,i)=>args[i])[0] || table[match.toLowerCase()]
+    return match[0] === match[0].toUpperCase() ? replace[0].toUpperCase() + replace.slice(1).toLowerCase() : replace;
+  })
+}
+
+function ___lat_to_rus(text) {
+  const regexp = 'sjh|sh|yj|hj|((?<=[bcdfghklmnpqrstvwx])j)|j|((?<=[bcdfghklmnpqrstvwxz])ye)|((?<=[bcdfghklmnpqrstvwxz])e)|hyh|zh|ch|kh|hy|ya|yh|yu|yi|yo|ye|a|b|c|d|e|f|g|i|k|l|m|n|o|p|r|s|t|u|v|y|z';
+  const values ='щ,ш,й,ь,ь,й,э,е,ъ,ж,ч,х,ъ,я,ъ,ю,ы,ё,е,а,б,ц,д,э,ф,г,и,к,л,м,н,о,п,р,с,т,у,в,ъ,з'.split(',');
+  return _encode(text, regexp, values);
+}
+
+function ___rus_to_lat(text) {
+  const regexp = '((?<=[бвгджзклмнпрстфхцчшщ])ъ(?=[аэиоуйь]))|((?<=[бвгджзклмнпрстфхцчшщ])ъ)|(ъ(?=[аэиоуйь]))|((?<=[бвгджзклмнпрстфхцчшщ])ь)|((?<=[бвгджзклмнпрстфхцчшщ])е)|((?<=[бвгджзклмнпрстфхцчшщ])й)|((?<=[бвгджзклмнпрстфхцчшщ])э)|ь|ъ|е|й|э|щ|ё|ж|х|ч|ш|ы|я|ю|а|б|в|г|д|з|и|к|л|м|н|о|п|р|с|т|у|ф|ц';
+  const values = 'yh,y,hyh,j,e,yj,ye,hj,hy,ye,j,e,sjh,yo,zh,kh,ch,sh,yi,ya,yu,a,b,v,g,d,z,i,k,l,m,n,o,p,r,s,t,u,f,c'.split(',');
+  return _encode(text, regexp, values);
+}
+
 window.onload = () => {
   let timeout;
 
