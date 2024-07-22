@@ -158,6 +158,9 @@ if(0) { // use regex (experimental)
   lat_to_rus = _lat_to_rus
 }
 
+
+// method 2: a bunch of regular expressions
+
 String.prototype.r = function(search, replace) {
   return this.replace(new RegExp(search, 'gi'), match => {
     if (match[0] === match[0].toUpperCase()) return replace[0].toUpperCase() + replace.slice(1).toLowerCase();
@@ -207,6 +210,35 @@ function _lat_to_rus(text) {
     .r('yi', 'ы')
     .r('yo', 'ё')
     .replace(/[a-z]/gi, m => 'АБЦДФГИКЛМНОПРСТУВЪЗабцдфгиклмнопрстувъз'['ABCDFGIKLMNOPRSTUVYZabcdfgiklmnoprstuvyz'.indexOf(m)]||m)
+}
+
+
+// method 3: a single regular expression with backreferences (where needed)
+
+const encode = (text,table) => {
+  backrefs = [];
+  Object.entries(table).forEach(([k,v])=>k[0]=='(' && backrefs.push(v));
+  return text.replace(new RegExp(Object.keys(table).join('|'),'gim'), (match, ...args) => {
+    let replace = backrefs.filter((v,i)=>args[i])[0] || table[match.toLowerCase()]
+    return match[0] === match[0].toUpperCase() ? replace[0].toUpperCase() + replace.slice(1).toLowerCase() : replace;
+  })
+}
+
+function __lat_to_rus(text) {
+  return encode(text, {
+  'sjh':'щ','sh':'ш','yj':'й','hj':'ь','((?<=[bcdfghklmnpqrstvwx])j)':'ь','j':'й','((?<=[bcdfghklmnpqrstvwxz])ye)':'э',
+  '((?<=[bcdfghklmnpqrstvwxz])e)':'е','hyh':'ъ','zh':'ж','ch':'ч','kh':'х','hy':'ъ','ya':'я','yh':'ъ','yu':'ю','yi':'ы','yo':'ё','ye':'е',
+  'a':'а','b':'б','c':'ц','d':'д','e':'э','f':'ф','g':'г','i':'и','k':'к','l':'л','m':'м','n':'н','o':'о','p':'п','r':'р','s':'с','t':'т',
+  'u':'у','v':'в','y':'ъ','z':'з' });
+}
+
+function __rus_to_lat(text) {
+  return encode(text, { '((?<=[бвгджзклмнпрстфхцчшщ])ъ(?=[аэиоуйь]))':'yh', '((?<=[бвгджзклмнпрстфхцчшщ])ъ)':'y',
+  '(ъ(?=[аэиоуйь]))':'hyh', '((?<=[бвгджзклмнпрстфхцчшщ])ь)':'j', '((?<=[бвгджзклмнпрстфхцчшщ])е)':'e',
+  '((?<=[бвгджзклмнпрстфхцчшщ])й)':'yj', '((?<=[бвгджзклмнпрстфхцчшщ])э)':'ye', 'ь':'hj', 'ъ':'hy', 'е':'ye', 'й':'j', 'э':'e',
+  'щ':'sjh', 'ё':'yo', 'ж':'zh', 'х':'kh', 'ч':'ch', 'ш':'sh', 'ы':'yi', 'я':'ya', 'ю':'yu', 'а':'a', 'б':'b', 'в':'v', 'г':'g',
+  'д':'d', 'з':'z', 'и':'i', 'к':'k', 'л':'l', 'м':'m', 'н':'n', 'о':'o', 'п':'p', 'р':'r', 'с':'s', 'т':'t', 'у':'u', 'ф':'f',
+  'ц':'c' });
 }
 
 window.onload = () => {
