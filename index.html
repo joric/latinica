@@ -10,6 +10,7 @@
 <meta property="og:site_name" content="Joric" />
 <meta property="og:title" content="Latinica" />
 <meta property="og:description" content="Latinica online converter, see https://habr.com/ru/articles/828722/" />
+
 <script>
 const latrus = {
   "a"  :  "а",
@@ -249,7 +250,7 @@ function __rus_to_lat(text) {
   'ц':'c' });
 }
 
-// method 4: method 3 wrapped
+// method 4: method 3 unwrapped
 
 const _encode = (text,regexp,values) => encode(text, Object.assign(...regexp.split('|').map((k,i)=>({[k]:values[i]}))));
 
@@ -289,7 +290,7 @@ window.onload = () => {
     }
   };
 
-  [/*
+  [
     ['zayezd','заезд'],
     ['derevo','дерево'],
     ['poet','поэт'],
@@ -310,7 +311,7 @@ window.onload = () => {
     ['yula','юла'],
     ['yabloko','яблоко'],
     ['Syyeshj zhe yesjhyo etikh myagkikh francuzskikh bulok, da vyipej chayu.','Съешь же ещё этих мягких французских булок, да выпей чаю.'],
- */   ['MYER','МЭР'],
+    ['MYER','МЭР'],
   ].map(test);
 }
 </script>
