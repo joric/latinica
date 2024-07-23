@@ -165,7 +165,7 @@ if(0) { // use regex (experimental)
 
 // method 2: a bunch of regular expressions
 
-const _capitalize = (replace, match, input, offset)=> {
+const _capitalize = (replace, match, input, offset) => {
     const next = input.substring(offset+1, offset+2);
     const cap = match === match.toUpperCase();
     const uc = cap && (next=='' || (next == next.toUpperCase() && next.toUpperCase()!=next.toLowerCase()));
